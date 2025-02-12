@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+		  <!--<AssemblyTitle>NewWeb</AssemblyTitle>
+		  <AssemblyDescription>This is my ASP.NET Core 8 project</AssemblyDescription>
+		  <AssemblyCompany>MyCompany</AssemblyCompany>
+		  <AssemblyProduct>NewWeb</AssemblyProduct>
+		  <Version>1.0.0</Version>
+		  <FileVersion>1.0.0.0</FileVersion>
+		  <InformationalVersion>1.0.0-beta</InformationalVersion>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+	  <ProjectReference Include="..\eCommerce.Entities\eCommerce.Entities.csproj" />
+	  <ProjectReference Include="..\eCommerce.Services\eCommerce.Services.csproj" />
+	  <ProjectReference Include="..\eCommerce.Shared\eCommerce.Shared.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Web.Optimization" Version="1.1.3" />
+    <PackageReference Include="Microsoft.AspNetCore.WebApi.Core" Version="5.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.WebApi.WebHost" Version="5.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.12" />
+    <PackageReference Include="Microsoft.Graph" Version="5.69.0" />
+    <PackageReference Include="Microsoft.Owin.Security.OAuth" Version="4.2.2" />
+  </ItemGroup>
+
+</Project>
