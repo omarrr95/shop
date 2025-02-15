@@ -1,132 +1,71 @@
 ﻿using eCommerce.Entities;
+using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
 
 namespace eCommerce.Shared.Helpers
 {
     public static class HTMLHelper
     {
-        public static MvcHtmlString MenuItemClass(this HtmlHelper htmlHelper, string controllerName, string actionName = "")
+        public static IHtmlContent MenuItemClass(this IHtmlHelper htmlHelper, string controllerName, string actionName = "")
         {
-            var currentController = htmlHelper.ViewContext.RouteData.GetRequiredString("controller");
+            var currentController = htmlHelper.ViewContext.RouteData.Values["controller"]?.ToString();
 
-            if (String.Equals(controllerName, currentController, StringComparison.CurrentCultureIgnoreCase))
+            if (string.Equals(controllerName, currentController, StringComparison.CurrentCultureIgnoreCase))
             {
-                if(!string.IsNullOrEmpty(actionName))
+                if (!string.IsNullOrEmpty(actionName))
                 {
-                    var currentAction = htmlHelper.ViewContext.RouteData.GetRequiredString("action");
+                    var currentAction = htmlHelper.ViewContext.RouteData.Values["action"]?.ToString();
 
-                    if (String.Equals(actionName, currentAction, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        return new MvcHtmlString("active");
-                    }
-                    else return new MvcHtmlString("");
+                    return string.Equals(actionName, currentAction, StringComparison.CurrentCultureIgnoreCase)
+                        ? new HtmlString("active")
+                        : new HtmlString("");
                 }
-                else return new MvcHtmlString("active");
+                return new HtmlString("active");
             }
-            else
-                return new MvcHtmlString("");
+            return new HtmlString("");
         }
 
-        public static string getCellBackgroundClassByOrderStatus(this HtmlHelper htmlHelper, OrderStatus orderStatus)
+        public static string GetCellBackgroundClassByOrderStatus(this IHtmlHelper htmlHelper, OrderStatus orderStatus)
         {
-            var bgClass = string.Empty;
-
-            switch (orderStatus)
+            return orderStatus switch
             {
-                case OrderStatus.Placed:
-                    bgClass = "bg-primary text-white";
-                    break;
-                case OrderStatus.Processing:
-                case OrderStatus.WaitingForPayment:
-                    bgClass = "bg-info text-white";
-                    break;
-                case OrderStatus.Delivered:
-                    bgClass = "bg-success text-white";
-                    break;
-                case OrderStatus.Failed:
-                case OrderStatus.Cancelled:
-                    bgClass = "bg-danger text-white";
-                    break;
-                case OrderStatus.OnHold:
-                case OrderStatus.Refunded:
-                    bgClass = "bg-warning";
-                    break;
-                default:
-                    bgClass = string.Empty;
-                    break;
-            }
-
-            return bgClass;
-        }
-        public static string getCellBackgroundClassByLanguageStatus(this HtmlHelper htmlHelper, bool enabled)
-        {
-            var bgClass = string.Empty;
-
-            if(!enabled)
-            {
-                bgClass = "bg-danger text-white";
-            }
-            else
-            {
-                bgClass = "bg-success text-white";
-            }
-            
-            return bgClass;
+                OrderStatus.Placed => "bg-primary text-white",
+                OrderStatus.Processing or OrderStatus.WaitingForPayment => "bg-info text-white",
+                OrderStatus.Delivered => "bg-success text-white",
+                OrderStatus.Failed or OrderStatus.Cancelled => "bg-danger text-white",
+                OrderStatus.OnHold or OrderStatus.Refunded => "bg-warning",
+                _ => string.Empty
+            };
         }
 
-        public static string GetFontAwesomeIconForSocialMediaProvider(this HtmlHelper htmlHelper, string socialMediaProvider)
+        public static string GetCellBackgroundClassByLanguageStatus(this IHtmlHelper htmlHelper, bool enabled)
         {
-            var fontAwesomeClass = string.Empty;
-
-            switch (socialMediaProvider)
-            {
-                case "Facebook":
-                    fontAwesomeClass = "fab fa-facebook-f";
-                    break;
-                case "Twitter":
-                    fontAwesomeClass = "fab fa-twitter";
-                    break;
-                case "Google":
-                    fontAwesomeClass = "fab fa-google";
-                    break;
-                case "Microsoft":
-                    fontAwesomeClass = "fab fa-microsoft";
-                    break;
-                default:
-                    fontAwesomeClass = string.Empty;
-                    break;
-            }
-
-            return fontAwesomeClass;
+            return enabled ? "bg-success text-white" : "bg-danger text-white";
         }
-        public static string GetButtonBackgroundClassForSocialMediaProvider(this HtmlHelper htmlHelper, string socialMediaProvider)
+
+        public static string GetFontAwesomeIconForSocialMediaProvider(this IHtmlHelper htmlHelper, string socialMediaProvider)
         {
-            var fontAwesomeClass = string.Empty;
-
-            switch (socialMediaProvider)
+            return socialMediaProvider switch
             {
-                case "Facebook":
-                    fontAwesomeClass = "bg-primary";
-                    break;
-                case "Twitter":
-                    fontAwesomeClass = "bg-info";
-                    break;
-                case "Google":
-                    fontAwesomeClass = "bg-danger";
-                    break;
-                case "Microsoft":
-                    fontAwesomeClass = "bg-success";
-                    break;
-                default:
-                    fontAwesomeClass = string.Empty;
-                    break;
-            }
+                "Facebook" => "fab fa-facebook-f",
+                "Twitter" => "fab fa-twitter",
+                "Google" => "fab fa-google",
+                "Microsoft" => "fab fa-microsoft",
+                _ => string.Empty
+            };
+        }
 
-            return fontAwesomeClass;
+        public static string GetButtonBackgroundClassForSocialMediaProvider(this IHtmlHelper htmlHelper, string socialMediaProvider)
+        {
+            return socialMediaProvider switch
+            {
+                "Facebook" => "bg-primary",
+                "Twitter" => "bg-info",
+                "Google" => "bg-danger",
+                "Microsoft" => "bg-success",
+                _ => string.Empty
+            };
         }
     }
 }

@@ -1,131 +1,106 @@
 ﻿using eCommerce.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.WebPages;
+using Microsoft.AspNetCore.Http;
 
 namespace eCommerce.Shared.Helpers
 {
-    public static class AppDataHelper
+    public class AppDataHelper
     {
-        private const string IS_INITILIZED = "IS_INITILIZED";
+        private const string IS_INITIALIZED = "IS_INITIALIZED";
         private const string CURRENT_LANGUAGE = "CURRENT_LANGUAGE";
         private const string IS_RTL = "IS_RTL";
 
-        public static void Populate()
+        private readonly SharedURLHelper _sharedURLHelper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public AppDataHelper(SharedURLHelper sharedURLHelper, IHttpContextAccessor httpContextAccessor)
         {
-            // TODO: Do we need to make this method thread-safe?
-            if (IsIntitialized)
+            _sharedURLHelper = sharedURLHelper;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public void Populate()
+        {
+            if (IsInitialized)
             {
                 return;
             }
 
-            #region Get the requested Language OR set 'en' as current if nothing specified in URL
-            string languageShortName = SharedURLHelper.GetLanguageUrlComponent();
-
+            // Get the requested Language OR set 'en' as default if nothing specified
+            string languageShortName = _sharedURLHelper.GetLanguageUrlComponent();
             var language = LanguagesHelper.EnabledLanguages.FirstOrDefault(x => x.ShortCode == languageShortName);
 
-            var forceUpdate = false;
+            bool forceUpdate = false;
 
             if (language == null)
             {
                 CurrentLanguage = LanguagesHelper.DefaultLanguage;
                 forceUpdate = true;
             }
-            else CurrentLanguage = language;
+            else
+            {
+                CurrentLanguage = language;
+            }
 
             if (CurrentLanguage == null)
             {
                 throw new Exception("NO LANGUAGE DETECTED");
             }
 
-            SharedURLHelper.TryAddRouteKeyValue("lang", CurrentLanguage.ShortCode, forceUpdate);
-
+            _sharedURLHelper.TryAddRouteKeyValue("lang", CurrentLanguage.ShortCode, forceUpdate);
             IsRTL = CurrentLanguage.IsRTL;
-            #endregion
 
-            IsIntitialized = true;
+            IsInitialized = true;
         }
 
-        public static bool IsIntitialized
+        public bool IsInitialized
         {
-            get
-            {
-                bool retVal = false;
-                if (HttpContext.Current.Items[IS_INITILIZED] != null)
-                {
-                    retVal = (bool)HttpContext.Current.Items[IS_INITILIZED];
-                }
-                return retVal;
-            }
-            set
-            {
-                HttpContext.Current.Items[IS_INITILIZED] = value;
-            }
-
+            get => _httpContextAccessor.HttpContext?.Items[IS_INITIALIZED] as bool? ?? false;
+            set => _httpContextAccessor.HttpContext.Items[IS_INITIALIZED] = value;
         }
 
-        public static Language CurrentLanguage
+        public Language CurrentLanguage
         {
-            get
-            {
-                return (Language)HttpContext.Current.Items[CURRENT_LANGUAGE];
-            }
-            set
-            {
-                HttpContext.Current.Items[CURRENT_LANGUAGE] = value;
-            }
+            get => _httpContextAccessor.HttpContext?.Items[CURRENT_LANGUAGE] as Language;
+            set => _httpContextAccessor.HttpContext.Items[CURRENT_LANGUAGE] = value;
         }
 
-        public static bool IsRTL
+        public bool IsRTL
         {
-            get
-            {
-                bool retVal = false;
-                if (HttpContext.Current.Items[IS_RTL] != null)
-                {
-                    retVal = (bool)HttpContext.Current.Items[IS_RTL];
-                }
-                return retVal;
-            }
-            set
-            {
-                HttpContext.Current.Items[IS_RTL] = value;
-            }
+            get => _httpContextAccessor.HttpContext?.Items[IS_RTL] as bool? ?? false;
+            set => _httpContextAccessor.HttpContext.Items[IS_RTL] = value;
         }
 
-        public static bool IsMobile
+        public bool IsMobile
         {
             get
             {
                 try
                 {
-                    return new HttpContextWrapper(HttpContext.Current).GetOverriddenBrowser().IsMobileDevice && !IsTablet;
+                    var httpContext = _httpContextAccessor.HttpContext;
+                    if (httpContext?.Request.Headers["User-Agent"].ToString().ToLower().Contains("mobi") == true && !IsTablet)
+                    {
+                        return true;
+                    }
                 }
-                catch
-                {
-                    return false;
-                }
+                catch { }
+
+                return false;
             }
         }
 
-        public static bool IsTablet
+        public bool IsTablet
         {
             get
             {
                 try
                 {
-                    var userAgent = HttpContext.Current.Request.UserAgent.ToLower().Trim();
-
+                    var httpContext = _httpContextAccessor.HttpContext;
+                    var userAgent = httpContext?.Request.Headers["User-Agent"].ToString().ToLower().Trim();
                     return !string.IsNullOrEmpty(userAgent) && userAgent.Contains("ipad");
                 }
-                catch
-                {
-                    return false;
-                }
+                catch { }
+
+                return false;
             }
         }
     }

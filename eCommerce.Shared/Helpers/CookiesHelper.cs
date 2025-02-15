@@ -1,50 +1,61 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Script.Serialization;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace eCommerce.Shared.Helpers
 {
-    public static class CookiesHelper
+    public class CookiesHelper
     {
         private const string COOKIE_NAME = "ObjValue";
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public static T GetObjectFromCookie<T>(string key)
+        public CookiesHelper(IHttpContextAccessor httpContextAccessor)
         {
-            T retVal = default(T);
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public T GetObjectFromCookie<T>(string key)
+        {
             string strValue = GetStringFromCookie(key);
-            if (strValue != "")
+            return !string.IsNullOrEmpty(strValue) ? DeserializeObject<T>(strValue) : default;
+        }
+
+        private string GetStringFromCookie(string key)
+        {
+            if (_httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(COOKIE_NAME, out var cookieValue))
             {
-                retVal = DeSerializeObject<T>(strValue);
+                return cookieValue;
             }
-            return retVal;
+            return string.Empty;
         }
 
-        private static string GetStringFromCookie(string key)
+        public void SetObjectInCookie<T>(string key, T value, int expireDays = 30)
         {
-            string retVal = "";
-            HttpCookie myCookie = HttpContext.Current.Request.Cookies[COOKIE_NAME];
-            if (myCookie != null)
+            var options = new CookieOptions
             {
-                retVal = HttpUtility.UrlDecode(myCookie.Values[key]);
-            }
-            return retVal;
+                Expires = DateTime.UtcNow.AddDays(expireDays),
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            };
+
+            string serializedValue = SerializeObject(value);
+            _httpContextAccessor.HttpContext.Response.Cookies.Append(key, serializedValue, options);
         }
 
-        internal static string SerializeObject<T>(this T toSerialize)
+        public void RemoveCookie(string key)
         {
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            return serializer.Serialize(toSerialize);
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete(key);
         }
 
-        internal static T DeSerializeObject<T>(string objValue)
+        private static string SerializeObject<T>(T toSerialize)
         {
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            return serializer.Deserialize<T>(objValue);
+            return JsonSerializer.Serialize(toSerialize);
         }
 
+        private static T DeserializeObject<T>(string objValue)
+        {
+            return JsonSerializer.Deserialize<T>(objValue);
+        }
     }
 }

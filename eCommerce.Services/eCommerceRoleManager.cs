@@ -1,25 +1,22 @@
-﻿using eCommerce.Data;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace eCommerce.Services
 {
     public class eCommerceRoleManager : RoleManager<IdentityRole>
     {
-        public eCommerceRoleManager(IRoleStore<IdentityRole, string> roleStore) : base(roleStore)
+        public eCommerceRoleManager(IRoleStore<IdentityRole> roleStore, ILogger<RoleManager<IdentityRole>> logger)
+            : base(roleStore, null, null, null, logger)
         {
         }
 
-        public static eCommerceRoleManager Create(IdentityFactoryOptions<eCommerceRoleManager> options, IOwinContext context)
+        public static eCommerceRoleManager Create(IServiceProvider serviceProvider)
         {
-            return new eCommerceRoleManager(new RoleStore<IdentityRole>(context.Get<eCommerceContext>()));
+            var roleStore = serviceProvider.GetRequiredService<IRoleStore<IdentityRole>>();
+            var logger = serviceProvider.GetRequiredService<ILogger<RoleManager<IdentityRole>>>();
+
+            return new eCommerceRoleManager(roleStore, logger);
         }
     }
 }

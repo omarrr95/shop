@@ -1,56 +1,52 @@
 ﻿using eCommerce.Shared.Helpers;
-using Microsoft.AspNet.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using SendGrid;
 using SendGrid.Helpers.Mail;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eCommerce.Services
 {
-    public class EmailService : IIdentityMessageService
+    public class EmailService : IEmailSender
     {
-        public Task SendAsync(IdentityMessage message)
+        private readonly ConfigurationsHelper _configurationsHelper;
+        public EmailService(ConfigurationsHelper configurationsHelper)
+        {
+            _configurationsHelper = configurationsHelper;
+        }
+        public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
             try
             {
-                var apiKey = ConfigurationsHelper.SendGrid_APIKey;
+                var apiKey = _configurationsHelper.SendGrid_APIKey;
                 var client = new SendGridClient(apiKey);
-                var from = new EmailAddress(ConfigurationsHelper.SendGrid_FromEmailAddress, ConfigurationsHelper.SendGrid_FromEmailAddressName);
-                var subject = message.Subject;
-                var to = new EmailAddress(message.Destination);
-                var plainTextContent = message.Body;
-                var htmlContent = message.Body;
-                var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+                var from = new EmailAddress(_configurationsHelper.SendGrid_FromEmailAddress, _configurationsHelper.SendGrid_FromEmailAddressName);
+                var to = new EmailAddress(email);
+                var msg = MailHelper.CreateSingleEmail(from, to, subject, htmlMessage, htmlMessage);
 
-                return client.SendEmailAsync(msg);
+                await client.SendEmailAsync(msg);
             }
             catch (Exception)
             {
-                return Task.CompletedTask;
+                // Log the error instead of failing silently
+                Console.WriteLine("Failed to send email.");
             }
         }
 
-        public Task SendToEmailAsync(string fromEmailAddressName, string fromEmailAddress, string toEmailAddress, string toEmailSubject, string toEmailBody)
+        public async Task SendToEmailAsync(string fromEmailAddressName, string fromEmailAddress, string toEmailAddress, string toEmailSubject, string toEmailBody)
         {
             try
             {
-                var apiKey = ConfigurationsHelper.SendGrid_APIKey;
+                var apiKey = _configurationsHelper.SendGrid_APIKey;
                 var client = new SendGridClient(apiKey);
                 var from = new EmailAddress(fromEmailAddress, fromEmailAddressName);
-                var subject = toEmailSubject;
                 var to = new EmailAddress(toEmailAddress);
-                var plainTextContent = toEmailBody;
-                var htmlContent = toEmailBody;
-                var msg = MailHelper.CreateSingleEmail(from, to, subject, plainTextContent, htmlContent);
+                var msg = MailHelper.CreateSingleEmail(from, to, toEmailSubject, toEmailBody, toEmailBody);
 
-                return client.SendEmailAsync(msg);
+                await client.SendEmailAsync(msg);
             }
             catch (Exception)
             {
-                return Task.CompletedTask;
+                // Log the error instead of failing silently
+                Console.WriteLine("Failed to send email.");
             }
         }
     }

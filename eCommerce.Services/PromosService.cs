@@ -1,5 +1,6 @@
 ﻿using eCommerce.Data;
 using eCommerce.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,31 +12,18 @@ namespace eCommerce.Services
     public class PromosService
     {
         #region Define as Singleton
-        private static PromosService _Instance;
-
-        public static PromosService Instance
+        private readonly eCommerceContext _eCommerceContext;
+        public PromosService(eCommerceContext eCommerceContext)
         {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new PromosService();
-                }
-
-                return (_Instance);
-            }
-        }
-
-        private PromosService()
-        {
+            _eCommerceContext = eCommerceContext;
         }
         #endregion
 
         public List<Promo> SearchPromos(string searchTerm, int? pageNo, int recordSize, out int count)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var promos = context.Promos
+            var promos = _eCommerceContext.Promos
                                 .Where(x => !x.IsDeleted)
                                 .AsQueryable();
 
@@ -54,46 +42,46 @@ namespace eCommerce.Services
 
         public Promo GetPromoByID(int ID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Promos.FirstOrDefault(x=> !x.IsDeleted && x.ID == ID);
+            return _eCommerceContext.Promos.FirstOrDefault(x=> !x.IsDeleted && x.ID == ID);
         }
         public Promo GetPromoByCode(string code)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Promos.FirstOrDefault(x => !x.IsDeleted && x.Code == code);
+            return _eCommerceContext.Promos.FirstOrDefault(x => !x.IsDeleted && x.Code == code);
         }
 
         public bool SavePromo(Promo Promo)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.Promos.Add(Promo);
+            _eCommerceContext.Promos.Add(Promo);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool UpdatePromo(Promo promo)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.Entry(promo).State = System.Data.Entity.EntityState.Modified;
+            _eCommerceContext.Entry(promo).State = EntityState.Modified;
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
         
         public bool DeletePromo(int ID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var promos = context.Promos.Find(ID);
+            var promos = _eCommerceContext.Promos.Find(ID);
 
             promos.IsDeleted = true;
 
-            context.Entry(promos).State = System.Data.Entity.EntityState.Modified;
+            _eCommerceContext.Entry(promos).State = EntityState.Modified;
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
     }
 }

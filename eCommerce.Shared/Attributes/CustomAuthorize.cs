@@ -1,25 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Routing;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using System;
 
 namespace eCommerce.Shared.Attributes
 {
-    public class CustomAuthorize : AuthorizeAttribute
+    public class CustomAuthorize : AuthorizeAttribute, IAuthorizationFilter
     {
-        protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
+        public void OnAuthorization(AuthorizationFilterContext context)
         {
-            if (!filterContext.HttpContext.User.Identity.IsAuthenticated)
+            var user = context.HttpContext.User;
+
+            if (user?.Identity == null || !user.Identity.IsAuthenticated)
             {
-                //if not logged in, it will work as normal Authorize and redirect to the Login
-                base.HandleUnauthorizedRequest(filterContext);
+                // User is not logged in, redirect to login page
+                context.Result = new UnauthorizedResult();
             }
             else
             {
-                //logged in and wihout the role to access it - redirect to the custom controller action
-                filterContext.Result = new RedirectToRouteResult("UnAuthorized", new RouteValueDictionary());
+                // User is authenticated but does not have access, redirect to custom unauthorized page
+                context.Result = new RedirectToActionResult("UnAuthorized", "Home", null);
             }
         }
     }

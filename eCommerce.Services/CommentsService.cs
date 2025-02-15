@@ -1,52 +1,34 @@
 ﻿using eCommerce.Data;
 using eCommerce.Entities;
 using eCommerce.Entities.CustomEntities;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace eCommerce.Services
 {
     public class CommentsService
     {
         #region Define as Singleton
-        private static CommentsService _Instance;
-
-        public static CommentsService Instance
+        private readonly eCommerceContext _eCommerceContext;
+        public CommentsService(eCommerceContext eCommerceContext)
         {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new CommentsService();
-                }
-
-                return (_Instance);
-            }
-        }
-
-        private CommentsService()
-        {
+            _eCommerceContext = eCommerceContext;
         }
         #endregion
-        
+
         public bool AddComment(Comment comment)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.Comments.Add(comment);
+            _eCommerceContext.Comments.Add(comment);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public List<Comment> SearchComments(int? entityID, int? recordID, string userID, string searchTerm, int? pageNo, int recordSize, out int count)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var comments = context.Comments
+            var comments = _eCommerceContext.Comments
                                   .Where(x => !x.IsDeleted)
                                   .AsQueryable();
 
@@ -85,20 +67,20 @@ namespace eCommerce.Services
         
         public Comment GetCommentByID(int ID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var comment = context.Comments.FirstOrDefault(x => x.ID == ID);
+            var comment = _eCommerceContext.Comments.FirstOrDefault(x => x.ID == ID);
 
             return comment != null && !comment.IsDeleted ? comment : null;
         }
 
         public ProductRating GetProductRating(int productID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
             var productRating = new ProductRating();
 
-            var productComments = context.Comments.Where(x => !x.IsDeleted && x.EntityID == (int)EntityEnums.Product && x.RecordID == productID);
+            var productComments = _eCommerceContext.Comments.Where(x => !x.IsDeleted && x.EntityID == (int)EntityEnums.Product && x.RecordID == productID);
 
             productRating.TotalRatings = productComments.Count();
             productRating.AverageRating = productRating.TotalRatings > 0 ? (int)productComments.Average(x => x.Rating) : 0;
@@ -108,15 +90,15 @@ namespace eCommerce.Services
 
         public bool DeleteComment(Comment comment)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            //var comment = context.Comments.Find(ID);
+            //var comment = _eCommerceContext.Comments.Find(ID);
 
             comment.IsDeleted = true;
 
-            context.Entry(comment).State = System.Data.Entity.EntityState.Modified;
+            _eCommerceContext.Entry(comment).State = EntityState.Modified;
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
     }
 }

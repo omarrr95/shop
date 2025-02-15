@@ -1,12 +1,7 @@
 ﻿using eCommerce.Entities;
 using eCommerce.Shared.Extensions;
-using System;
+using Microsoft.AspNetCore.Html;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace eCommerce.Shared.Helpers
 {
@@ -46,14 +41,14 @@ namespace eCommerce.Shared.Helpers
             return GetLocalizedString(resourceKey, languageID);
         }
 
-        public static HtmlString Localized(this string resourceKey)
+        public static HtmlString Localized(this string resourceKey, AppDataHelper appDataHelper)
         {
-            return GetLocalizedString(resourceKey, AppDataHelper.CurrentLanguage.ID);
+            return GetLocalizedString(resourceKey, appDataHelper.CurrentLanguage.ID);
         }
 
-        public static string LocalizedString(this string resourceKey)
+        public static string LocalizedString(this string resourceKey, AppDataHelper appDataHelper)
         {
-            return GetLocalizedString(resourceKey, AppDataHelper.CurrentLanguage.ID).ToString();
+            return GetLocalizedString(resourceKey, appDataHelper.CurrentLanguage.ID).ToString();
         }
     }
 

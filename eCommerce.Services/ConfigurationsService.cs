@@ -1,84 +1,67 @@
 ﻿using eCommerce.Data;
 using eCommerce.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace eCommerce.Services
 {
     public class ConfigurationsService
     {
         #region Define as Singleton
-        private static ConfigurationsService _Instance;
-
-        public static ConfigurationsService Instance
+        private readonly eCommerceContext _eCommerceContext;
+        public ConfigurationsService(eCommerceContext eCommerceContext)
         {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new ConfigurationsService();
-                }
-
-                return (_Instance);
-            }
-        }
-
-        private ConfigurationsService()
-        {
+            _eCommerceContext = eCommerceContext;
         }
         #endregion
 
         public List<Configuration> GetAllConfigurations()
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Configurations.ToList();
+            return _eCommerceContext.Configurations.ToList();
         }
 
         public List<Configuration> GetConfigurationsByType(int configurationType)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Configurations.Where(x => x.ConfigurationType == configurationType).ToList();
+            return _eCommerceContext.Configurations.Where(x => x.ConfigurationType == configurationType).ToList();
         }
 
         public Configuration GetConfigurationByKey(string key)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Configurations.FirstOrDefault(x => x.Key == key);
+            return _eCommerceContext.Configurations.FirstOrDefault(x => x.Key == key);
         }
 
         public bool UpdateConfiguration(Configuration configuration)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.Entry(configuration).State = System.Data.Entity.EntityState.Modified;
+            _eCommerceContext.Entry(configuration).State = EntityState.Modified;
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool UpdateConfigurationValue(string key, string value)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var configuration = context.Configurations.Find(key);
+            var configuration = _eCommerceContext.Configurations.Find(key);
 
             configuration.Value = value;
 
-            context.Entry(configuration).State = System.Data.Entity.EntityState.Modified;
+            _eCommerceContext.Entry(configuration).State = EntityState.Modified;
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public List<Configuration> SearchConfigurations(int? configurationType, string searchTerm, int? pageNo, int recordSize, out int count)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var configurations = context.Configurations.AsQueryable();
+            var configurations = _eCommerceContext.Configurations.AsQueryable();
 
             if (configurationType.HasValue && configurationType.Value > 0)
             {

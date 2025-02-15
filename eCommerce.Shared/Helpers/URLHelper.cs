@@ -1,657 +1,162 @@
-﻿using eCommerce.Shared.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Routing;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace eCommerce.Shared.Helpers
 {
     public static class URLHelper
     {
-        public static string Home(this UrlHelper helper)
+        public static string Home(this IUrlHelper helper, ConfigurationsHelper configurationsHelper)
         {
-            var routeValues = new RouteValueDictionary();
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_Home")
+                : helper.RouteUrl("Home");
 
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_Home");
-            }
-            else routeURL = helper.RouteUrl("Home");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string StaticPage(this UrlHelper helper, string pageid)
+        public static string StaticPage(this IUrlHelper helper, string pageId, ConfigurationsHelper configurationsHelper)
         {
-            var routeValues = new RouteValueDictionary();
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl($"LanguageBased_{pageId}")
+                : helper.RouteUrl(pageId);
 
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl(string.Format("LanguageBased_{0}", pageid));
-            }
-            else routeURL = helper.RouteUrl(string.Format("{0}", pageid));
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string SubscribeNewsLetter(this UrlHelper helper)
+        public static string SubscribeNewsLetter(this IUrlHelper helper, ConfigurationsHelper configurationsHelper)
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_SubscribeNewsLetter")
+                : helper.RouteUrl("SubscribeNewsLetter");
 
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_SubscribeNewsLetter");
-            }
-            else routeURL = helper.RouteUrl("SubscribeNewsLetter");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string SubmitContactForm(this UrlHelper helper)
+        public static string SubmitContactForm(this IUrlHelper helper, ConfigurationsHelper configurationsHelper)
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_SubmitContactForm")
+                : helper.RouteUrl("SubmitContactForm");
 
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_SubmitContactForm");
-            }
-            else routeURL = helper.RouteUrl("SubmitContactForm");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string Register(this UrlHelper helper)
+        public static string Register(this IUrlHelper helper, ConfigurationsHelper configurationsHelper)
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_Register")
+                : helper.RouteUrl("Register");
 
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_Register");
-            }
-            else routeURL = helper.RouteUrl("Register");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string Login(this UrlHelper helper, string returnUrl = "")
+        public static string Login(this IUrlHelper helper, ConfigurationsHelper configurationsHelper, string returnUrl = "")
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_Login", new { returnUrl })
+                : helper.RouteUrl("Login", new { returnUrl });
 
-            var routeValues = new RouteValueDictionary();
-
-            if(!string.IsNullOrEmpty(returnUrl))
-            {
-                routeValues.Add("returnUrl", returnUrl);
-            }
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_Login", routeValues);
-            }
-            else routeURL = helper.RouteUrl("Login", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string SocialLoginCallback(this UrlHelper helper)
+        public static string ForgotPassword(this IUrlHelper helper, ConfigurationsHelper configurationsHelper)
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_ForgotPassword")
+                : helper.RouteUrl("ForgotPassword");
 
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_SocialLoginCallback");
-            }
-            else routeURL = helper.RouteUrl("SocialLoginCallback");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string ForgotPassword(this UrlHelper helper)
+        public static string ResetPassword(this IUrlHelper helper, ConfigurationsHelper configurationsHelper)
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_ResetPassword")
+                : helper.RouteUrl("ResetPassword");
 
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_ForgotPassword");
-            }
-            else routeURL = helper.RouteUrl("ForgotPassword");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string ResetPassword(this UrlHelper helper)
+        public static string SearchProducts(this IUrlHelper helper, ConfigurationsHelper configurationsHelper, string category = "", string q = "", decimal? from = null, decimal? to = null, string sortby = "", int? pageNo = 1, int? recordSize = null)
         {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
+            var routeValues = new
             {
-                routeURL = helper.RouteUrl("LanguageBased_ResetPassword");
-            }
-            else routeURL = helper.RouteUrl("ResetPassword");
+                category,
+                q,
+                from = from > 0 ? from : null,
+                to = to > 0 ? to : null,
+                sortby,
+                pageNo = pageNo > 1 ? pageNo : null,
+                recordSize = recordSize > 1 ? recordSize : null
+            };
 
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_SearchProducts", routeValues)
+                : helper.RouteUrl("SearchProducts", routeValues);
+
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string Logoff(this UrlHelper helper)
+        public static string ProductDetails(this IUrlHelper helper, ConfigurationsHelper configurationsHelper, string category, int id, string sanitizedTitle = "")
         {
-            string routeURL = string.Empty;
+            var routeValues = new { category, id, sanitizedTitle };
 
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_Logoff");
-            }
-            else routeURL = helper.RouteUrl("Logoff");
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_ProductDetails", routeValues)
+                : helper.RouteUrl("ProductDetails", routeValues);
 
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string SearchProducts(this UrlHelper helper, string category = "", string q = "", decimal? from = 0.0M, decimal? to = 0.0M, string sortby = "", int? pageNo = 0, int? recordSize = 0)
+        public static string UserProfile(this IUrlHelper helper, ConfigurationsHelper configurationsHelper, string tab = "")
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_UserProfile", new { tab })
+                : helper.RouteUrl("UserProfile", new { tab });
 
-            var routeValues = new RouteValueDictionary();
-
-            routeValues.Add("category", category);
-
-            if (!string.IsNullOrEmpty(q))
-            {
-                routeValues.Add("q", q);
-            }
-
-            if (from.HasValue && from.Value > 0.0M)
-            {
-                routeValues.Add("from", from.Value);
-            }
-
-            if (to.HasValue && to.Value > 0.0M)
-            {
-                routeValues.Add("to", to.Value);
-            }
-
-            if (!string.IsNullOrEmpty(sortby))
-            {
-                routeValues.Add("sortby", sortby);
-            }
-
-            if (recordSize.HasValue && recordSize.Value > 1 && recordSize.Value != (int)RecordSizeEnums.Size20)
-            {
-                routeValues.Add("recordSize", recordSize.Value);
-            }
-            
-            if (pageNo.HasValue && pageNo.Value > 1)
-            {
-                routeValues.Add("pageNo", pageNo.Value);
-            }
-            
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_SearchProducts", routeValues);
-            }
-            else routeURL = helper.RouteUrl("SearchProducts", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string ProductDetails(this UrlHelper helper, string category, int ID, string sanitizedtitle = "")
+        public static string Checkout(this IUrlHelper helper, ConfigurationsHelper configurationsHelper)
         {
-            string routeURL = string.Empty;
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_Checkout")
+                : helper.RouteUrl("Checkout");
 
-            var routeValues = new RouteValueDictionary();
-
-            routeValues.Add("category", category);
-            routeValues.Add("ID", ID);
-
-            if(!string.IsNullOrEmpty(sanitizedtitle))
-            {
-                routeValues.Add("sanitizedtitle", sanitizedtitle);
-            }
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_ProductDetails", routeValues);
-            }
-            else routeURL = helper.RouteUrl("ProductDetails", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string UserProfile(this UrlHelper helper, string tab = "")
+        public static string PlaceOrder(this IUrlHelper helper, ConfigurationsHelper configurationsHelper, bool isCashOnDelivery = false, bool isPayPal = false)
         {
-            string routeURL = string.Empty;
+            string routeKey = isCashOnDelivery ? "PlaceOrderViaCashOnDelivery" :
+                              isPayPal ? "PlaceOrderViaPayPal" :
+                              "PlaceOrder";
 
-            var routeValues = new RouteValueDictionary();
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl($"LanguageBased_{routeKey}")
+                : helper.RouteUrl(routeKey);
 
-            if(!string.IsNullOrEmpty(tab))
-            {
-                routeValues.Add("tab", tab);
-            }
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UserProfile", routeValues);
-            }
-            else routeURL = helper.RouteUrl("UserProfile", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string UpdateProfile(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UpdateProfile");
-            }
-            else routeURL = helper.RouteUrl("UpdateProfile");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string ChangePassword(this UrlHelper helper)
+        public static string OrderTrack(this IUrlHelper helper, ConfigurationsHelper configurationsHelper, string orderId = "", bool orderPlaced = false)
         {
-            string routeURL = string.Empty;
+            var routeValues = new { orderId, orderPlaced };
 
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_ChangePassword");
-            }
-            else routeURL = helper.RouteUrl("ChangePassword");
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_OrderTrack", routeValues)
+                : helper.RouteUrl("OrderTrack", routeValues);
 
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string UpdatePassword(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UpdatePassword");
-            }
-            else routeURL = helper.RouteUrl("UpdatePassword");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
 
-        public static string ChangeAvatar(this UrlHelper helper)
+        public static string PrintInvoice(this IUrlHelper helper, int orderId, ConfigurationsHelper configurationsHelper)
         {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_ChangeAvatar");
-            }
-            else routeURL = helper.RouteUrl("ChangeAvatar");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string UpdateAvatar(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UpdateAvatar");
-            }
-            else routeURL = helper.RouteUrl("UpdateAvatar");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        
-        public static string UserOrders(this UrlHelper helper, string userID = "", int? orderID = 0, int? orderStatus = 0, int? pageNo = 0)
-        {
-            string routeURL = string.Empty;
-
-            var routeValues = new RouteValueDictionary();
-
-            if (!string.IsNullOrEmpty(userID))
-            {
-                routeValues.Add("userID", userID);
-            }
-
-            if (orderID.HasValue && orderID.Value > 0)
-            {
-                routeValues.Add("orderID", orderID.Value);
-            }
-
-            if (orderStatus.HasValue && orderStatus.Value > 0)
-            {
-                routeValues.Add("orderStatus", orderStatus.Value);
-            }
-
-            if (pageNo.HasValue && pageNo.Value > 1)
-            {
-                routeValues.Add("pageNo", pageNo.Value);
-            }
-            
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UserOrders", routeValues);
-            }
-            else routeURL = helper.RouteUrl("UserOrders", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string Cart(this UrlHelper helper, bool isPopup = false)
-        {
-            string routeURL = string.Empty;
-
-            var routeValues = new RouteValueDictionary();
-
-            if (isPopup)
-            {
-                routeValues.Add("isPopup", isPopup);
-            }
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_Cart", routeValues);
-            }
-            else routeURL = helper.RouteUrl("Cart", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string UpdateCart(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UpdateCart");
-            }
-            else routeURL = helper.RouteUrl("UpdateCart");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string AddItemToCart(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_AddItemToCart");
-            }
-            else routeURL = helper.RouteUrl("AddItemToCart");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string GetCartItems(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_GetCartItems");
-            }
-            else routeURL = helper.RouteUrl("GetCartItems");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string CartProducts(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-            
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_CartProducts");
-            }
-            else routeURL = helper.RouteUrl("CartProducts");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string CartItems(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-            
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_CartItems");
-            }
-            else routeURL = helper.RouteUrl("CartItems");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string Checkout(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_Checkout");
-            }
-            else routeURL = helper.RouteUrl("Checkout");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string PlaceOrder(this UrlHelper helper, bool isCashOnDelivery = false, bool isPayPal = false)
-        {
-            string routeURL = string.Empty;
-            var LanguageBased = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                LanguageBased = "LanguageBased_";
-            }
-
-            if (isCashOnDelivery)
-            {
-                routeURL = helper.RouteUrl(string.Format("{0}PlaceOrderViaCashOnDelivery", LanguageBased));
-            }
-            else if (isPayPal)
-            {
-                routeURL = helper.RouteUrl(string.Format("{0}PlaceOrderViaPayPal", LanguageBased));
-            }
-            else
-            {
-                routeURL = helper.RouteUrl(string.Format("{0}PlaceOrder", LanguageBased));
-            }
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string OrderTrack(this UrlHelper helper, string orderID = "", bool orderPlaced = false)
-        {
-            string routeURL = string.Empty;
-
-            var routeValues = new RouteValueDictionary();
-            
-            if (!string.IsNullOrEmpty(orderID))
-            {
-                routeValues.Add("orderID", orderID);
-            }
-
-            if (orderPlaced)
-            {
-                routeValues.Add("orderPlaced", orderPlaced);
-            }
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_OrderTrack", routeValues);
-            }
-            else routeURL = helper.RouteUrl("OrderTrack", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string PrintInvoice(this UrlHelper helper, int orderID)
-        {
-            string routeURL = string.Empty;
-
-            var routeValues = new RouteValueDictionary();
-
-            routeValues.Add("orderID", orderID);
-            
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_PrintInvoice", routeValues);
-            }
-            else routeURL = helper.RouteUrl("PrintInvoice", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string UploadPictures(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UploadPictures");
-            }
-            else routeURL = helper.RouteUrl("UploadPictures");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string UploadPicturesWithoutDatabase(this UrlHelper helper, bool isSiteFolder = false, string subFolder = "")
-        {
-            string routeURL = string.Empty;
-            var routeValues = new RouteValueDictionary();
-            
-            if (isSiteFolder)
-            {
-                routeValues.Add("isSiteFolder", isSiteFolder);
-            }
-
-            if (!string.IsNullOrEmpty(subFolder))
-            {
-                routeValues.Add("subFolder", subFolder);
-            }
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UploadPicturesWithoutDatabase", routeValues);
-            }
-            else routeURL = helper.RouteUrl("UploadPicturesWithoutDatabase", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string LeaveComment(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_LeaveComment");
-            }
-            else routeURL = helper.RouteUrl("LeaveComment");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string DeleteComment(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_DeleteComment");
-            }
-            else routeURL = helper.RouteUrl("DeleteComment");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-        public static string UserComments(this UrlHelper helper, string userID = "", string searchTerm = "", int? pageNo = 0)
-        {
-            string routeURL = string.Empty;
-
-            var routeValues = new RouteValueDictionary();
-
-            routeValues.Add("Controller", "Comments");
-
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                routeValues.Add("searchTerm", searchTerm);
-            }
-
-            if (!string.IsNullOrEmpty(userID))
-            {
-                routeValues.Add("userID", userID);
-            }
-
-            if (pageNo.HasValue && pageNo.Value > 1)
-            {
-                routeValues.Add("pageNo", pageNo.Value);
-            }
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_UserComments", routeValues);
-            }
-            else routeURL = helper.RouteUrl("UserComments", routeValues);
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string ChangeMode(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_ChangeMode");
-            }
-            else routeURL = helper.RouteUrl("ChangeMode");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
-        }
-
-        public static string ExternalSocialScripts(this UrlHelper helper)
-        {
-            string routeURL = string.Empty;
-
-            if (ConfigurationsHelper.EnableMultilingual)
-            {
-                routeURL = helper.RouteUrl("LanguageBased_ExternalSocialScripts");
-            }
-            else routeURL = helper.RouteUrl("ExternalSocialScripts");
-
-            routeURL = HttpUtility.UrlDecode(routeURL, System.Text.Encoding.UTF8);
-            return routeURL.ToLower();
+            string routeURL = configurationsHelper.EnableMultilingual
+                ? helper.RouteUrl("LanguageBased_PrintInvoice", new { orderId })
+                : helper.RouteUrl("PrintInvoice", new { orderId });
+
+            return WebUtility.UrlDecode(routeURL)?.ToLower();
         }
     }
 }

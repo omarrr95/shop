@@ -1,5 +1,6 @@
 ﻿using eCommerce.Data;
 using eCommerce.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,31 +12,18 @@ namespace eCommerce.Services
     public class LanguagesService
     {
         #region Define as Singleton
-        private static LanguagesService _Instance;
-
-        public static LanguagesService Instance
+        private readonly eCommerceContext _eCommerceContext;
+        public LanguagesService(eCommerceContext eCommerceContext)
         {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new LanguagesService();
-                }
-
-                return (_Instance);
-            }
-        }
-
-        private LanguagesService()
-        {
+            _eCommerceContext = eCommerceContext;
         }
         #endregion
 
         public List<Language> GetLanguages(bool enabledLanguagesOnly = false, bool resourceLanguagesOnly = true, int? pageNo = 1, int? recordSize = 0)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var languages = context.Languages
+            var languages = _eCommerceContext.Languages
                                     .Where(x => !x.IsDeleted)
                                     .AsQueryable();
 
@@ -46,7 +34,7 @@ namespace eCommerce.Services
 
             if(resourceLanguagesOnly)
             {
-                var languageIDsWithResources = context.LanguageResources.Select(x => x.LanguageID).Distinct();
+                var languageIDsWithResources = _eCommerceContext.LanguageResources.Select(x => x.LanguageID).Distinct();
 
                 languages = languages.Where(x=>languageIDsWithResources.Contains(x.ID));
             }
@@ -67,9 +55,9 @@ namespace eCommerce.Services
 
         public List<Language> SearchLanguages(string searchTerm, out int count, bool enabledLanguagesOnly = false, int? pageNo = 1, int? recordSize = 0)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var languages = context.Languages
+            var languages = _eCommerceContext.Languages
                                     .Where(x => !x.IsDeleted)
                                     .AsQueryable();
 
@@ -101,110 +89,110 @@ namespace eCommerce.Services
 
         public Language GetDefaultLanguage()
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Languages.FirstOrDefault(x => x.IsDefault && !x.IsDeleted);
+            return _eCommerceContext.Languages.FirstOrDefault(x => x.IsDefault && !x.IsDeleted);
         }
 
         public Language GetLanguageByID(int ID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Languages.FirstOrDefault(x => x.ID == ID && !x.IsDeleted);
+            return _eCommerceContext.Languages.FirstOrDefault(x => x.ID == ID && !x.IsDeleted);
         }
 
         public Language GetLanguageByShortCode(string shortCode)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Languages.FirstOrDefault(x => x.ShortCode == shortCode && !x.IsDeleted);
+            return _eCommerceContext.Languages.FirstOrDefault(x => x.ShortCode == shortCode && !x.IsDeleted);
         }
 
         public bool AddLanguage(Language language, bool makeDefault = false)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
             if (makeDefault)
             {
-                var existingDefaultLanguages = context.Languages.Where(x => x.IsDefault).ToList();
+                var existingDefaultLanguages = _eCommerceContext.Languages.Where(x => x.IsDefault).ToList();
 
                 existingDefaultLanguages.ForEach(x => x.IsDefault = false);
             }
 
-            context.Languages.Add(language);
+            _eCommerceContext.Languages.Add(language);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool UpdateLanguage(Language language, bool makeDefault = false)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
             if (makeDefault)
             {
-                var existingDefaultLanguages = context.Languages.Where(x => x.IsDefault).ToList();
+                var existingDefaultLanguages = _eCommerceContext.Languages.Where(x => x.IsDefault).ToList();
 
                 existingDefaultLanguages.ForEach(x => x.IsDefault = false);
             }
 
-            context.Entry(language).State = System.Data.Entity.EntityState.Modified;
+            _eCommerceContext.Entry(language).State = EntityState.Modified;
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool LanguageHasResources(Language language)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var languageResource = context.LanguageResources.FirstOrDefault(x => x.LanguageID == language.ID);
+            var languageResource = _eCommerceContext.LanguageResources.FirstOrDefault(x => x.LanguageID == language.ID);
 
             return languageResource != null;
         }
 
         public List<int> LanguagesWithResources()
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var languageIDs = context.LanguageResources.Select(x => x.LanguageID).Distinct().ToList();
+            var languageIDs = _eCommerceContext.LanguageResources.Select(x => x.LanguageID).Distinct().ToList();
 
             return languageIDs;
         }
 
         public List<LanguageResource> GetAllLanguageResources()
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.LanguageResources.ToList();
+            return _eCommerceContext.LanguageResources.ToList();
         }
 
         public List<LanguageResource> GetLanguageResources(int languageID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.LanguageResources.Where(x => x.LanguageID == languageID).ToList();
+            return _eCommerceContext.LanguageResources.Where(x => x.LanguageID == languageID).ToList();
         }
 
         public List<LanguageResource> GetLanguagesResources(List<int> languageIDs)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.LanguageResources.Where(x => languageIDs.Contains(x.LanguageID)).ToList();
+            return _eCommerceContext.LanguageResources.Where(x => languageIDs.Contains(x.LanguageID)).ToList();
         }
 
         public bool ImportLanguageResources(int languageID, List<LanguageResource> resources)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var existingResources = context.LanguageResources.Where(x=>x.LanguageID == languageID);
+            var existingResources = _eCommerceContext.LanguageResources.Where(x=>x.LanguageID == languageID);
 
             if(existingResources.Count() > 0)
             {
-                context.LanguageResources.RemoveRange(existingResources);
+                _eCommerceContext.LanguageResources.RemoveRange(existingResources);
             }
 
-            context.LanguageResources.AddRange(resources);
+            _eCommerceContext.LanguageResources.AddRange(resources);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
     }
 }

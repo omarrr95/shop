@@ -1,42 +1,24 @@
 ﻿using eCommerce.Data;
 using eCommerce.Entities;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace eCommerce.Services
 {
     public class ProductsService
     {
         #region Define as Singleton
-        private static ProductsService _Instance;
-
-        public static ProductsService Instance
+        private readonly eCommerceContext _eCommerceContext;
+        public ProductsService(eCommerceContext eCommerceContext)
         {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new ProductsService();
-                }
-
-                return (_Instance);
-            }
-        }
-
-        private ProductsService()
-        {
+            _eCommerceContext = eCommerceContext;
         }
         #endregion
 
         public List<Product> GetAllProducts(int? pageNo = 1, int? recordSize = 0)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var products = context.Products
+            var products = _eCommerceContext.Products
                                     .Where(x => !x.IsDeleted && x.IsActive && !x.Category.IsDeleted)
                                     .OrderBy(x => x.ID)
                                     .AsQueryable();
@@ -57,9 +39,9 @@ namespace eCommerce.Services
         {
             excludeProductIDs = excludeProductIDs ?? new List<int>();
 
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var products = context.Products
+            var products = _eCommerceContext.Products
                                     .Where(x => !x.IsDeleted && x.IsActive && !x.Category.IsDeleted && x.isFeatured && !excludeProductIDs.Contains(x.ID))
                                     .OrderBy(x => x.ID)
                                     .AsQueryable();
@@ -78,15 +60,15 @@ namespace eCommerce.Services
 
         public List<Product> SearchProducts(List<int> categoryIDs, string searchTerm, decimal? from, decimal? to, string sortby, int? pageNo, int recordSize, bool activeOnly, out int count, int? stockCheckCount = null)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var products = context.Products
+            var products = _eCommerceContext.Products
                                   .Where(x => !x.IsDeleted && (!activeOnly || x.IsActive) && !x.Category.IsDeleted)
                                   .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                products = context.ProductRecords
+                products = _eCommerceContext.ProductRecords
                                   .Where(x => !x.IsDeleted && x.Name.ToLower().Contains(searchTerm.ToLower()))
                                   .Select(x => x.Product)
                                   .Where(x => !x.IsDeleted && (!activeOnly || x.IsActive) && !x.Category.IsDeleted)
@@ -139,15 +121,15 @@ namespace eCommerce.Services
 
         public List<Product> GetProductWithLessStockQuantity(List<int> categoryIDs, string searchTerm, decimal? from, decimal? to, string sortby, bool activeOnly, int stockCount, out int count)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var products = context.Products
+            var products = _eCommerceContext.Products
                                   .Where(x => !x.IsDeleted && (!activeOnly || x.IsActive) && !x.Category.IsDeleted)
                                   .AsQueryable();
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                products = context.ProductRecords
+                products = _eCommerceContext.ProductRecords
                                   .Where(x => !x.IsDeleted && x.Name.ToLower().Contains(searchTerm.ToLower()))
                                   .Select(x => x.Product)
                                   .Where(x => !x.IsDeleted && (!activeOnly || x.IsActive) && !x.Category.IsDeleted)
@@ -195,9 +177,9 @@ namespace eCommerce.Services
 
         public Product GetProductByID(int ID, bool activeOnly = true)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var product = context.Products.Include("Category.CategoryRecords").Include("ProductPictures.Picture").FirstOrDefault(x=>x.ID == ID);
+            var product = _eCommerceContext.Products.Include("Category.CategoryRecords").Include("ProductPictures.Picture").FirstOrDefault(x=>x.ID == ID);
 
             if(activeOnly)
             {
@@ -208,122 +190,120 @@ namespace eCommerce.Services
 
         public List<Product> GetProductsByIDs(List<int> IDs)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return IDs.Select(id => context.Products.Find(id)).Where(x=>!x.IsDeleted && x.IsActive && !x.Category.IsDeleted).OrderBy(x=>x.ID).ToList();
+            return IDs.Select(id => _eCommerceContext.Products.Find(id)).Where(x=>!x.IsDeleted && x.IsActive && !x.Category.IsDeleted).OrderBy(x=>x.ID).ToList();
         }
 
         public ProductRecord GetProductRecordByID(int ID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var productRecord = context.ProductRecords.Find(ID);
+            var productRecord = _eCommerceContext.ProductRecords.Find(ID);
 
             return productRecord != null && !productRecord.IsDeleted ? productRecord : null;
         }
 
         public decimal GetMaxProductPrice()
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var products = context.Products.Where(x => !x.IsDeleted && x.IsActive && !x.Category.IsDeleted);
+            var products = _eCommerceContext.Products.Where(x => !x.IsDeleted && x.IsActive && !x.Category.IsDeleted);
 
             return products.Count() > 0 ? products.Max(x => x.Price) : 0;
         }
 
         public bool SaveProduct(Product product)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.Products.Add(product);
+            _eCommerceContext.Products.Add(product);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool SaveProductRecord(ProductRecord productRecord)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.ProductRecords.Add(productRecord);
+            _eCommerceContext.ProductRecords.Add(productRecord);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool UpdateProduct(Product product)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var existingProduct = context.Products.Find(product.ID);
+            var existingProduct = _eCommerceContext.Products.Find(product.ID);
 
-            context.Entry(existingProduct).CurrentValues.SetValues(product);
+            _eCommerceContext.Entry(existingProduct).CurrentValues.SetValues(product);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool UpdateProductPictures(int productID, List<ProductPicture> newPictures)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var oldPictures = context.ProductPictures.Where(p => p.ProductID == productID);
+            var oldPictures = _eCommerceContext.ProductPictures.Where(p => p.ProductID == productID);
 
-            context.ProductPictures.RemoveRange(oldPictures);
+            _eCommerceContext.ProductPictures.RemoveRange(oldPictures);
 
-            context.ProductPictures.AddRange(newPictures);
+            _eCommerceContext.ProductPictures.AddRange(newPictures);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool UpdateProductRecord(ProductRecord productRecord)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var existingRecord = context.ProductRecords.Find(productRecord.ID);
+            var existingRecord = _eCommerceContext.ProductRecords.Find(productRecord.ID);
 
-            context.Entry(existingRecord).CurrentValues.SetValues(productRecord);
+            _eCommerceContext.Entry(existingRecord).CurrentValues.SetValues(productRecord);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool UpdateProductSpecifications(int productRecordID, List<ProductSpecification> newProductSpecification)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var oldProductSpecifications = context.ProductSpecifications.Where(p => p.ProductRecordID == productRecordID);
+            var oldProductSpecifications = _eCommerceContext.ProductSpecifications.Where(p => p.ProductRecordID == productRecordID);
 
-            context.ProductSpecifications.RemoveRange(oldProductSpecifications);
+            _eCommerceContext.ProductSpecifications.RemoveRange(oldProductSpecifications);
 
-            context.ProductSpecifications.AddRange(newProductSpecification);
+            _eCommerceContext.ProductSpecifications.AddRange(newProductSpecification);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public bool DeleteProduct(int ID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var product = context.Products.Find(ID);
+            var product = _eCommerceContext.Products.Find(ID);
 
             product.IsDeleted = true;
 
-            context.Entry(product).State = System.Data.Entity.EntityState.Modified;
+            _eCommerceContext.Entry(product).State = EntityState.Modified;
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public void UpdateProductQuantities(Order order)
         {
-            eCommerceContext context = new eCommerceContext();
-
             foreach (var orderItem in order.OrderItems)
             {
-                var dbProduct = context.Products.Find(orderItem.ProductID);
+                var dbProduct = _eCommerceContext.Products.Find(orderItem.ProductID);
 
                 dbProduct.StockQuantity = dbProduct.StockQuantity - orderItem.Quantity;
 
-                context.Entry(dbProduct).State = EntityState.Modified;
+                _eCommerceContext.Entry(dbProduct).State = EntityState.Modified;
             }
 
-            context.SaveChanges();
+            _eCommerceContext.SaveChanges();
         }
     }
 }

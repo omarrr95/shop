@@ -1,5 +1,6 @@
 ﻿using eCommerce.Data;
 using eCommerce.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,47 +12,34 @@ namespace eCommerce.Services
     public class OrdersService
     {
         #region Define as Singleton
-        private static OrdersService _Instance;
-
-        public static OrdersService Instance
+        private readonly eCommerceContext _eCommerceContext;
+        public OrdersService(eCommerceContext eCommerceContext)
         {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new OrdersService();
-                }
-
-                return (_Instance);
-            }
-        }
-
-        private OrdersService()
-        {
+            _eCommerceContext = eCommerceContext;
         }
         #endregion
 
         public bool SaveOrder(Order order)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.Orders.Add(order);
+            _eCommerceContext.Orders.Add(order);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
 
         public Order GetOrderByID(int ID)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Orders.Include("OrderItems.Product.ProductRecords").FirstOrDefault(x=>x.ID == ID);
+            return _eCommerceContext.Orders.Include("OrderItems.Product.ProductRecords").FirstOrDefault(x=>x.ID == ID);
         }
 
         public List<Order> SearchOrders(string userID, int? orderID, int? orderStatus, int? pageNo, int recordSize, out int count)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            var orders = context.Orders.AsQueryable();
+            var orders = _eCommerceContext.Orders.AsQueryable();
 
             if (!string.IsNullOrEmpty(userID))
             {
@@ -78,11 +66,11 @@ namespace eCommerce.Services
 
         public bool AddOrderHistory(OrderHistory orderHistory)
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            context.OrderHistories.Add(orderHistory);
+            _eCommerceContext.OrderHistories.Add(orderHistory);
 
-            return context.SaveChanges() > 0;
+            return _eCommerceContext.SaveChanges() > 0;
         }
     }
 }

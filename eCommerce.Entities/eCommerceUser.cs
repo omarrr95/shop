@@ -1,11 +1,5 @@
-﻿using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eCommerce.Entities
 {
@@ -16,32 +10,34 @@ namespace eCommerce.Entities
         public string City { get; set; }
         public string Address { get; set; }
         public string ZipCode { get; set; }
-
-        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(Microsoft.AspNet.Identity.UserManager<eCommerceUser> manager)
-        {
-            // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
-            var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
-            // Add custom user claims here
-            userIdentity.AddClaim(new Claim("Email", Email));
-            userIdentity.AddClaim(new Claim("Picture", this.Picture != null ? this.Picture.URL : string.Empty));
-
-            return userIdentity;
-        }
-
-        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(Microsoft.AspNet.Identity.UserManager<eCommerceUser> manager, string authenticationType)
-        {
-            // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
-            var userIdentity = await manager.CreateIdentityAsync(this, authenticationType);
-            // Add custom user claims here
-            userIdentity.AddClaim(new Claim("Email", Email));
-            userIdentity.AddClaim(new Claim("Picture", this.Picture != null ? this.Picture.URL : string.Empty));
-
-            return userIdentity;
-        }
-
         public int? PictureID { get; set; }
         public virtual Picture Picture { get; set; }
-
         public DateTime? RegisteredOn { get; set; }
+        public async Task<ClaimsPrincipal> GenerateUserIdentityAsync(UserManager<eCommerceUser> manager)
+        {
+            var userIdentity = new ClaimsPrincipal();
+            var claimsIdentity = new ClaimsIdentity(await manager.GetClaimsAsync(this), IdentityConstants.ApplicationScheme);
+
+            // Add custom user claims
+            claimsIdentity.AddClaim(new Claim("Email", Email));
+            claimsIdentity.AddClaim(new Claim("Picture", Picture != null ? Picture.URL : string.Empty));
+
+            userIdentity.AddIdentity(claimsIdentity);
+            return userIdentity;
+        }
+        public async Task<ClaimsPrincipal> GenerateUserIdentityAsync(UserManager<eCommerceUser> manager, string authenticationType)
+        {
+            var userIdentity = new ClaimsPrincipal();
+            var claimsIdentity = new ClaimsIdentity(await manager.GetClaimsAsync(this), authenticationType);
+
+            // Add custom user claims
+            claimsIdentity.AddClaim(new Claim("Email", Email));
+            claimsIdentity.AddClaim(new Claim("Picture", Picture != null ? Picture.URL : string.Empty));
+
+            userIdentity.AddIdentity(claimsIdentity);
+            return userIdentity;
+        }
+
+
     }
 }

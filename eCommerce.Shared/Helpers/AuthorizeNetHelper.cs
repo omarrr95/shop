@@ -18,11 +18,11 @@ namespace eCommerce.Shared.Helpers
         private static string _ApiTransactionKey = "";
         private static bool _SandBox = true;
 
-        public static void ConfigureAuthorizeNetAPI()
+        public static void ConfigureAuthorizeNetAPI(ConfigurationsHelper configurationsHelper)
         {
-            _ApiLoginID = ConfigurationsHelper.AuthorizeNet_ApiLoginID;
-            _ApiTransactionKey = ConfigurationsHelper.AuthorizeNet_ApiTransactionKey;
-            _SandBox = ConfigurationsHelper.AuthorizeNet_SandBox;
+            _ApiLoginID = configurationsHelper.AuthorizeNet_ApiLoginID;
+            _ApiTransactionKey = configurationsHelper.AuthorizeNet_ApiTransactionKey;
+            _SandBox = configurationsHelper.AuthorizeNet_SandBox;
 
             if (_SandBox)
             {
@@ -41,9 +41,9 @@ namespace eCommerce.Shared.Helpers
             };
         }
 
-        public static AuthorizeNetResponse ExecutePayment(Order newOrder, creditCardType creditCardInfo)
+        public static AuthorizeNetResponse ExecutePayment(Order newOrder, ConfigurationsHelper configurationsHelper, creditCardType creditCardInfo)
         {
-            ConfigureAuthorizeNetAPI();
+            ConfigureAuthorizeNetAPI(configurationsHelper);
 
             AuthorizeNetResponse authorizeNetResponse = new AuthorizeNetResponse();
 

@@ -1,31 +1,36 @@
 ﻿using eCommerce.Entities;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin;
-using Microsoft.Owin.Security;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eCommerce.Services
 {
-    public class eCommerceSignInManager : SignInManager<eCommerceUser, string>
+    public class eCommerceSignInManager : SignInManager<eCommerceUser>
     {
-        public eCommerceSignInManager(eCommerceUserManager userManager, IAuthenticationManager authenticationManager)
-            : base(userManager, authenticationManager)
+        public eCommerceSignInManager(
+            UserManager<eCommerceUser> userManager,
+            IHttpContextAccessor contextAccessor,
+            IUserClaimsPrincipalFactory<eCommerceUser> claimsFactory,
+            ILogger<SignInManager<eCommerceUser>> logger)
+            : base(userManager, contextAccessor, claimsFactory, null, null, null, logger)
         {
         }
 
-        public override Task<ClaimsIdentity> CreateUserIdentityAsync(eCommerceUser user)
+        public override async Task<ClaimsPrincipal> CreateUserPrincipalAsync(eCommerceUser user)
         {
-            return user.GenerateUserIdentityAsync((eCommerceUserManager)UserManager);
+            return await ClaimsFactory.CreateAsync(user);
         }
 
-        public static eCommerceSignInManager Create(IdentityFactoryOptions<eCommerceSignInManager> options, IOwinContext context)
+        public static eCommerceSignInManager Create(IServiceProvider serviceProvider)
         {
-            return new eCommerceSignInManager(context.GetUserManager<eCommerceUserManager>(), context.Authentication);
+            var userManager = serviceProvider.GetRequiredService<UserManager<eCommerceUser>>();
+            var contextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+            var claimsFactory = serviceProvider.GetRequiredService<IUserClaimsPrincipalFactory<eCommerceUser>>();
+            var logger = serviceProvider.GetRequiredService<ILogger<SignInManager<eCommerceUser>>>();
+
+            return new eCommerceSignInManager(userManager, contextAccessor, claimsFactory, logger);
         }
     }
 }

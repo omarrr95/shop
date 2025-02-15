@@ -1,72 +1,67 @@
 ﻿using eCommerce.Data;
 using eCommerce.Entities;
-using Microsoft.AspNet.Identity;
-using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
-using Microsoft.Owin;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eCommerce.Services
 {
     public class eCommerceUserManager : UserManager<eCommerceUser>
     {
-        public eCommerceUserManager(IUserStore<eCommerceUser> store)
-            : base(store)
+        public eCommerceUserManager(
+            IUserStore<eCommerceUser> store,
+            IOptions<IdentityOptions> optionsAccessor,
+            IPasswordHasher<eCommerceUser> passwordHasher,
+            IEnumerable<IUserValidator<eCommerceUser>> userValidators,
+            IEnumerable<IPasswordValidator<eCommerceUser>> passwordValidators,
+            ILookupNormalizer keyNormalizer,
+            IdentityErrorDescriber errors,
+            IServiceProvider services,
+            ILogger<UserManager<eCommerceUser>> logger)
+            : base(store, optionsAccessor, passwordHasher, userValidators, passwordValidators, keyNormalizer, errors, services, logger)
         {
         }
 
-        public static eCommerceUserManager Create(IdentityFactoryOptions<eCommerceUserManager> options, IOwinContext context)
+        public static eCommerceUserManager Create(IServiceProvider serviceProvider)
         {
-            var manager = new eCommerceUserManager(new UserStore<eCommerceUser>(context.Get<eCommerceContext>()));
+            var userStore = serviceProvider.GetRequiredService<IUserStore<eCommerceUser>>();
+            var options = serviceProvider.GetRequiredService<IOptions<IdentityOptions>>();
+            var passwordHasher = serviceProvider.GetRequiredService<IPasswordHasher<eCommerceUser>>();
+            var userValidators = serviceProvider.GetRequiredService<IEnumerable<IUserValidator<eCommerceUser>>>();
+            var passwordValidators = serviceProvider.GetRequiredService<IEnumerable<IPasswordValidator<eCommerceUser>>>();
+            var keyNormalizer = serviceProvider.GetRequiredService<ILookupNormalizer>();
+            var errorDescriber = serviceProvider.GetRequiredService<IdentityErrorDescriber>();
+            var logger = serviceProvider.GetRequiredService<ILogger<UserManager<eCommerceUser>>>();
 
-            // Configure validation logic for usernames
-            manager.UserValidator = new UserValidator<eCommerceUser>(manager)
-            {
-                AllowOnlyAlphanumericUserNames = true,
-                RequireUniqueEmail = true
-            };
+            var manager = new eCommerceUserManager(
+                userStore,
+                options,
+                passwordHasher,
+                userValidators,
+                passwordValidators,
+                keyNormalizer,
+                errorDescriber,
+                serviceProvider,
+                logger);
 
-            // Configure validation logic for passwords
-            manager.PasswordValidator = new PasswordValidator
-            {
-                RequiredLength = 4,
-                RequireNonLetterOrDigit = false,
-                RequireDigit = false,
-                RequireLowercase = false,
-                RequireUppercase = false,
-            };
+            // Configure user validation
+            manager.Options.User.RequireUniqueEmail = true;
+            manager.Options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
 
-            // Configure user lockout defaults
-            manager.UserLockoutEnabledByDefault = true;
-            manager.DefaultAccountLockoutTimeSpan = TimeSpan.FromMinutes(5);
-            manager.MaxFailedAccessAttemptsBeforeLockout = 5;
+            // Configure password validation
+            manager.Options.Password.RequireDigit = false;
+            manager.Options.Password.RequiredLength = 4;
+            manager.Options.Password.RequireNonAlphanumeric = false;
+            manager.Options.Password.RequireUppercase = false;
+            manager.Options.Password.RequireLowercase = false;
 
-            // Register two factor authentication providers. This application uses Phone and Emails as a step of receiving a code for verifying the user
-            // You can write your own provider and plug it in here.
-            manager.RegisterTwoFactorProvider("Phone Code", new PhoneNumberTokenProvider<eCommerceUser>
-            {
-                MessageFormat = "Your security code is {0}"
-            });
+            // Configure account lockout
+            manager.Options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            manager.Options.Lockout.MaxFailedAccessAttempts = 5;
+            manager.Options.Lockout.AllowedForNewUsers = true;
 
-            manager.RegisterTwoFactorProvider("Email Code", new EmailTokenProvider<eCommerceUser>
-            {
-                Subject = "Security Code",
-                BodyFormat = "Your security code is {0}"
-            });
-
-            manager.EmailService = new EmailService();
-            //manager.SmsService = new SmsService();
-
-            var dataProtectionProvider = options.DataProtectionProvider;
-            if (dataProtectionProvider != null)
-            {
-                manager.UserTokenProvider =
-                    new DataProtectorTokenProvider<eCommerceUser>(dataProtectionProvider.Create("ASP.NET Identity"));
-            }
             return manager;
         }
     }

@@ -1,62 +1,64 @@
 ﻿using eCommerce.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eCommerce.Shared.Helpers
 {
-    public static class EmailTextHelpers
+    public class EmailTextHelpers
     {
-        public static string AccountRegisterEmailSubject(int languageID)
+        private readonly ConfigurationsHelper _configurationsHelper;
+
+        public EmailTextHelpers(ConfigurationsHelper configurationsHelper)
         {
-            return string.Format("{0} Account Registered!", ConfigurationsHelper.ApplicationName);
+            _configurationsHelper = configurationsHelper;
         }
 
-        public static string AccountRegisterEmailBody(int languageID, string loginURL)
+        public string AccountRegisterEmailSubject(int languageID)
         {
-            return string.Format("Thanks for registering your account on {0}. Your account has been created successfully. You can login to your account here: {1}", ConfigurationsHelper.ApplicationName, loginURL);
+            return $"{_configurationsHelper.ApplicationName} Account Registered!";
         }
 
-        public static string OrderPlacedEmailSubject(int languageID, int orderID)
+        public string AccountRegisterEmailBody(int languageID, string loginURL)
         {
-            return string.Format("Order Placed Successfully. Order# {0}", orderID);
+            return $"Thanks for registering your account on {_configurationsHelper.ApplicationName}. Your account has been created successfully. You can login to your account here: {loginURL}";
         }
 
-        public static string OrderPlacedEmailBody(int languageID, int orderID, string orderTrackingURL)
+        public string OrderPlacedEmailSubject(int languageID, int orderID)
         {
-            return string.Format("Your order# {0} has been placed successfully on {1}. You can check the details of your order here: {2}. You will be updated with your order status.", orderID, ConfigurationsHelper.ApplicationName, orderTrackingURL);
+            return $"Order Placed Successfully. Order# {orderID}";
         }
 
-        public static string OrderPlacedEmailSubject_Admin(int languageID, int orderID)
+        public string OrderPlacedEmailBody(int languageID, int orderID, string orderTrackingURL)
         {
-            return string.Format("New Order# {0} has been Placed on {1}.", orderID, ConfigurationsHelper.ApplicationName);
+            return $"Your order# {orderID} has been placed successfully on {_configurationsHelper.ApplicationName}. You can check the details of your order here: {orderTrackingURL}. You will be updated with your order status.";
         }
 
-        public static string OrderPlacedEmailBody_Admin(int languageID, int orderID, string orderDetailsURL)
+        public string OrderPlacedEmailSubject_Admin(int languageID, int orderID)
         {
-            return string.Format("A new order# {0} has been placed successfully on {1}. You can check the details of order here: {2}.", orderID, ConfigurationsHelper.ApplicationName, orderDetailsURL);
+            return $"New Order# {orderID} has been Placed on {_configurationsHelper.ApplicationName}.";
         }
 
-        public static string OrderStatusUpdatedEmailSubject(int languageID, int orderID, int orderStatus)
+        public string OrderPlacedEmailBody_Admin(int languageID, int orderID, string orderDetailsURL)
         {
-            return string.Format("Order# {0} Status updated to {1}.", orderID, ((OrderStatus)orderStatus).ToString());
+            return $"A new order# {orderID} has been placed successfully on {_configurationsHelper.ApplicationName}. You can check the details of the order here: {orderDetailsURL}.";
         }
 
-        public static string OrderStatusUpdatedEmailBody(int languageID, int orderID, int orderStatus, string orderTrackingURL)
+        public string OrderStatusUpdatedEmailSubject(int languageID, int orderID, int orderStatus)
         {
-            return string.Format("Your order# {0} status has been updated to {1} on {2}. You can check the details of your order here: {3}.", orderID, ((OrderStatus)orderStatus).ToString(), ConfigurationsHelper.ApplicationName, orderTrackingURL);
-        }
-        
-        public static string ContactMessageSubject_Admin()
-        {
-            return string.Format("A new contact us message has been received on {0}", ConfigurationsHelper.ApplicationName);
+            return $"Order# {orderID} Status updated to {(OrderStatus)orderStatus}.";
         }
 
-        public static string ContactMessageBody_Admin(string subject, string name, string email, string message)
+        public string OrderStatusUpdatedEmailBody(int languageID, int orderID, int orderStatus, string orderTrackingURL)
         {
-            return string.Format("A new message has been received on {0}. Following are the details. <br> Subject: {1}<br> Name: {2}<br> Email: {3}<br> Message Details: {4}", ConfigurationsHelper.ApplicationName, subject, name, email, message);
+            return $"Your order# {orderID} status has been updated to {(OrderStatus)orderStatus} on {_configurationsHelper.ApplicationName}. You can check the details of your order here: {orderTrackingURL}.";
+        }
+
+        public string ContactMessageSubject_Admin()
+        {
+            return $"A new contact us message has been received on {_configurationsHelper.ApplicationName}";
+        }
+
+        public string ContactMessageBody_Admin(string subject, string name, string email, string message)
+        {
+            return $"A new message has been received on {_configurationsHelper.ApplicationName}. Following are the details. <br> Subject: {subject}<br> Name: {name}<br> Email: {email}<br> Message Details: {message}";
         }
     }
 }

@@ -1,95 +1,98 @@
 ﻿using eCommerce.Shared.Extensions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Routing;
-using System.Web.WebPages;
+using System.Net;
 
 namespace eCommerce.Shared.Helpers
 {
-    public static class SharedURLHelper
+    public class SharedURLHelper
     {
-        #region GetUrlComponentMethods
-        public static string GetLanguageUrlComponent()
+        private readonly IHttpContextAccessor _contextAccessor;
+        private readonly IUrlHelper _urlHelper;
+
+        public SharedURLHelper(IHttpContextAccessor contextAccessor, IUrlHelper urlHelper)
+        {
+            _contextAccessor = contextAccessor;
+            _urlHelper = urlHelper;
+        }
+
+        public string GetLanguageUrlComponent()
         {
             var languageShortName = GetUrlValueByKey("lang");
-
-            //return !string.IsNullOrEmpty(languageShortName) ? languageShortName : "en";
             return languageShortName;
         }
-        public static string GetUrlComponentByKey(string key)
+
+        public string GetUrlComponentByKey(string key)
         {
             return GetUrlValueByKey(key);
         }
 
-        private static string GetUrlValueByKey(string key)
+        private string GetUrlValueByKey(string key)
         {
-            RouteValueDictionary routeValues = HttpContext.Current.Request.RequestContext.RouteData.Values;
+            var routeValues = _contextAccessor.HttpContext?.GetRouteData()?.Values;
 
-            string value = string.Empty;
-            foreach (var routeValue in routeValues)
+            if (routeValues != null && routeValues.TryGetValue(key, out var value))
             {
-                if (routeValue.Key.ToLower() == key.ToLower())
-                {
-                    value = routeValue.Value.ToString();
-                    break;
-                }
+                return value?.ToString() ?? string.Empty;
             }
 
-            return value;
+            return string.Empty;
         }
 
-        public static bool TryAddRouteKeyValue(string key, string value, bool forceUpdate = false)
+        public bool TryAddRouteKeyValue(string key, string value, bool forceUpdate = false)
         {
-            RouteValueDictionary routeValues = HttpContext.Current.Request.RequestContext.RouteData.Values;
+            var routeValues = _contextAccessor.HttpContext?.GetRouteData()?.Values;
+
+            if (routeValues == null) return false;
 
             if (!routeValues.ContainsKey(key))
             {
-                routeValues.Add(key, value);
-
+                routeValues[key] = value;
                 return true;
             }
-            else
+            else if (forceUpdate)
             {
-                if(forceUpdate)
-                {
-                    routeValues[key] = value;
-                }
-
-                return false;
+                routeValues[key] = value;
+                return true;
             }
+
+            return false;
         }
-        #endregion
 
-        public static string LanguageBasedURL(this UrlHelper helper, string langShortCode)
+        public string LanguageBasedURL(string langShortCode)
         {
-            Route currentRoute = (Route)HttpContext.Current.Request.RequestContext.RouteData.Route;
+            var httpContext = _contextAccessor.HttpContext;
+            if (httpContext == null) return string.Empty;
 
-            string routeURL = currentRoute.Url.ToLower().Trim();
+            var routeValues = httpContext.GetRouteData()?.Values;
+            string queryString = httpContext.Request.QueryString.HasValue ? httpContext.Request.QueryString.Value : string.Empty;
 
-            string queryString = HttpContext.Current.Request.QueryString.ToString() == string.Empty ? string.Empty : "?" + HttpContext.Current.Request.QueryString;
+            string routeUrl = httpContext.Request.Path.Value?.ToLower().Trim() ?? string.Empty;
 
-            var routeValues = HttpContext.Current.Request.RequestContext.RouteData.Values;
-
-            foreach (var routeValue in routeValues)
+            if (routeValues != null)
             {
-                if (routeValue.Key.Equals("lang"))
+                foreach (var routeValue in routeValues)
                 {
-                    routeURL = routeURL.Replace(string.Format("{{{0}}}", routeValue.Key.ToLower().Trim()), langShortCode);
-                }
-                else
-                {
-                    routeURL = routeURL.Replace(string.Format("{{{0}}}", routeValue.Key.ToLower().Trim()), routeValue.Value.ToString().Trim());
+                    string key = $"{{{routeValue.Key.ToLower().Trim()}}}";
+
+                    if (routeValue.Key.Equals("lang", StringComparison.OrdinalIgnoreCase))
+                    {
+                        routeUrl = routeUrl.Replace(key, langShortCode);
+                    }
+                    else
+                    {
+                        routeUrl = routeUrl.Replace(key, routeValue.Value.ToString().Trim());
+                    }
                 }
             }
 
-            routeURL = !string.IsNullOrEmpty(routeURL) ? routeURL.ReplaceUnpassedRouteValues() : string.Empty;
+            routeUrl = !string.IsNullOrEmpty(routeUrl) ? routeUrl.ReplaceUnpassedRouteValues() : string.Empty;
 
-            return string.Format("{0}/{1}", HttpContext.Current.Request.Url.GetLeftPart(UriPartial.Authority), routeURL + queryString).ToLower();
+            return $"{httpContext.Request.Scheme}://{httpContext.Request.Host}{routeUrl}{queryString}".ToLower();
         }
     }
 }

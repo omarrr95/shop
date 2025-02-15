@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Http;
+using System;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 
 namespace eCommerce.Shared.Attributes
 {
@@ -27,79 +26,44 @@ namespace eCommerce.Shared.Attributes
         /// <returns>The processed data.</returns>
         protected abstract string Process(string data);
 
-        public override void OnResultExecuted(ResultExecutedContext filterContext)
+        public override async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
         {
-            var response = filterContext.HttpContext.Response;
+            var response = context.HttpContext.Response;
 
-            if (response.Filter == null) return;
+            // Store the original response body
+            var originalBodyStream = response.Body;
 
-            response.Filter = new OutputProcessorStream(response.Filter, InputEncoding, OutputEncoding, Process);
-        }
-
-        internal class OutputProcessorStream : Stream
-        {
-            private readonly StringBuilder _data = new StringBuilder();
-
-            private readonly Stream _stream;
-            private readonly Func<string, string> _processor;
-
-            private readonly Encoding _inputEncoding;
-            private readonly Encoding _outputEncoding;
-
-            public OutputProcessorStream(Stream stream, Encoding inputEncoding, Encoding outputEncoding, Func<string, string> processor)
+            try
             {
-                _stream = stream;
-                _processor = processor;
-                _inputEncoding = inputEncoding;
-                _outputEncoding = outputEncoding;
-            }
+                using (var memoryStream = new MemoryStream())
+                {
+                    response.Body = memoryStream;
 
-            public override void Write(byte[] buffer, int offset, int count)
+                    await next(); // Continue processing the response
+
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    using (var reader = new StreamReader(memoryStream, InputEncoding))
+                    {
+                        var body = await reader.ReadToEndAsync();
+                        var processedBody = Process(body);
+
+                        var outputBytes = OutputEncoding.GetBytes(processedBody);
+                        response.ContentLength = outputBytes.Length;
+
+                        // Reset the stream to write processed output
+                        memoryStream.SetLength(0);
+                        await memoryStream.WriteAsync(outputBytes, 0, outputBytes.Length);
+                        await memoryStream.FlushAsync();
+                        memoryStream.Seek(0, SeekOrigin.Begin);
+
+                        await memoryStream.CopyToAsync(originalBodyStream);
+                    }
+                }
+            }
+            finally
             {
-                _data.Append(_inputEncoding.GetString(buffer, offset, count));
+                response.Body = originalBodyStream; // Restore original response body
             }
-
-            /// <exception cref="IOException">An I/O error has occurred.</exception>
-            /// <exception cref="Exception">A delegate callback throws an exception.</exception>
-            public override void Close()
-            {
-                var output = _outputEncoding.GetBytes(_processor(_data.ToString()));
-                _stream.Write(output, 0, output.Length);
-                _stream.Flush();
-                _data.Clear();
-            }
-
-            public override void Flush()
-            {
-            }
-
-            /// <exception cref="IOException">An I/O error occurs. </exception>
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                return _stream.Read(buffer, offset, count);
-            }
-
-            /// <exception cref="IOException">An I/O error occurs. </exception>
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                return _stream.Seek(offset, origin);
-            }
-
-            /// <exception cref="IOException">An I/O error occurs. </exception>
-            public override void SetLength(long value)
-            {
-                _stream.SetLength(value);
-            }
-
-            public override bool CanRead { get { return true; } }
-
-            public override bool CanSeek { get { return true; } }
-
-            public override bool CanWrite { get { return true; } }
-
-            public override long Length { get { return 0; } }
-
-            public override long Position { get; set; }
         }
     }
 }

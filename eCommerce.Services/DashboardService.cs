@@ -1,46 +1,28 @@
 ﻿using eCommerce.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace eCommerce.Services
 {
     public class DashboardService
     {
         #region Define as Singleton
-        private static DashboardService _Instance;
-
-        public static DashboardService Instance
+        private readonly eCommerceContext _eCommerceContext;
+        public DashboardService(eCommerceContext eCommerceContext)
         {
-            get
-            {
-                if (_Instance == null)
-                {
-                    _Instance = new DashboardService();
-                }
-
-                return (_Instance);
-            }
-        }
-
-        private DashboardService()
-        {
+            _eCommerceContext = eCommerceContext;
         }
         #endregion
 
         public int GetUserCount()
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Users.Count();
+            return _eCommerceContext.Users.Count();
         }
         public int GetRolesCount()
         {
-            var context = DataContextHelper.GetNewContext();
+            
 
-            return context.Roles.Count();
+            return _eCommerceContext.Roles.Count();
         }
     }
 }

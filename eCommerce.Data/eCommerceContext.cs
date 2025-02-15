@@ -1,45 +1,35 @@
 ﻿using eCommerce.Entities;
-using Microsoft.AspNet.Identity.EntityFramework;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace eCommerce.Data
 {
     public class eCommerceContext : IdentityDbContext<eCommerceUser>
     {
-        public eCommerceContext() : base("name=eCommerceConnectionString_OK")
-        {
-            Database.SetInitializer<eCommerceContext>(new eCommerceDBInitializer());
-        }
+        public eCommerceContext(DbContextOptions<eCommerceContext> options) : base(options) { }
 
-        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // This needs to go before the other rules!
-            
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Promo>()
-                .HasIndex(p => new { p.Code })
-                .IsUnique(true);
+                .HasIndex(p => p.Code)
+                .IsUnique();
 
             modelBuilder.Entity<eCommerceUser>().ToTable("Users");
             modelBuilder.Entity<IdentityRole>().ToTable("Roles");
-            modelBuilder.Entity<IdentityUserRole>().ToTable("UserRoles");
-            modelBuilder.Entity<IdentityUserClaim>().ToTable("UserClaims");
-            modelBuilder.Entity<IdentityUserLogin>().ToTable("UserLogins");
+            modelBuilder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
+            modelBuilder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");
+            modelBuilder.Entity<IdentityUserLogin<string>>().ToTable("UserLogins");
         }
 
         public DbSet<Language> Languages { get; set; }
         public DbSet<LanguageResource> LanguageResources { get; set; }
-
         public DbSet<Category> Categories { get; set; }
         public DbSet<CategoryRecord> CategoryRecords { get; set; }
-
         public DbSet<Product> Products { get; set; }
         public DbSet<ProductRecord> ProductRecords { get; set; }
-
         public DbSet<Promo> Promos { get; set; }
         public DbSet<Picture> Pictures { get; set; }
         public DbSet<ProductPicture> ProductPictures { get; set; }
@@ -48,12 +38,14 @@ namespace eCommerce.Data
         public DbSet<Configuration> Configurations { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderHistory> OrderHistories { get; set; }
-
         public DbSet<NewsletterSubscription> NewsletterSubscriptions { get; set; }
 
-        public static eCommerceContext Create()
-        {
-            return new eCommerceContext();
-        }
+        //public static eCommerceContext Create()
+        //{
+        //    var optionsBuilder = new DbContextOptionsBuilder<eCommerceContext>();
+        //    optionsBuilder.UseSqlServer("YourConnectionStringHere");
+
+        //    return new eCommerceContext(optionsBuilder.Options);
+        //}
     }
 }
