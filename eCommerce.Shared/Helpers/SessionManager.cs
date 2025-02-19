@@ -1,109 +1,50 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Text.Json;
 
 namespace eCommerce.Shared.Helpers
 {
-    public class SessionManager
+    public static class SessionManager
     {
-        private static SessionStorageType sessionStorage = SessionStorageType.NotSpecified;
+        private static IHttpContextAccessor _httpContextAccessor;
 
-        public static SessionStorageType SessionStorage {
-            get {
-                return sessionStorage;
-            }
-            set {
-                sessionStorage = value;
-            }
+        public static void Configure(IHttpContextAccessor httpContextAccessor)
+        {
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        private static void CheckSessionStorage()
-        {
-            if (sessionStorage == SessionStorageType.NotSpecified)
-            {
-                string sessionStoreage = "httpsession";
-                if (string.IsNullOrEmpty(sessionStoreage))
-                {
-                    sessionStorage = SessionStorageType.HTTPSession;
-                }
-                else
-                {
-                    sessionStoreage = sessionStoreage.ToLower();
-                    switch (sessionStoreage)
-                    {
-                        case "httpsession":
-                            sessionStorage = SessionStorageType.HTTPSession;
-                            break;
-                        case "cookie":
-                            sessionStorage = SessionStorageType.Cookie;
-                            break;
-                        default:
-                            sessionStorage = SessionStorageType.HTTPSession;
-                            break;
-                    }
-                }
-            }
-        }
+        private static ISession Session => _httpContextAccessor?.HttpContext?.Session;
 
-        public static T Get<T>(string aKey)
+        public static T Get<T>(string key)
         {
-            T retVal = default(T);
             try
             {
-                CheckSessionStorage();
-                switch (sessionStorage)
-                {
-                    case SessionStorageType.HTTPSession:
-                        retVal = (T)HttpContext.Current.Session[aKey];
-                        break;
-                    case SessionStorageType.Cookie:
-                        retVal = CookiesHelper.GetObjectFromCookie<T>(aKey);
-                        break;
-                }
+                if (Session == null || !Session.TryGetValue(key, out var data))
+                    return default;
+
+                var jsonString = System.Text.Encoding.UTF8.GetString(data);
+                return JsonSerializer.Deserialize<T>(jsonString);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine(ex.Message);
+                Console.WriteLine($"Session Get Error: {ex.Message}");
+                return default;
             }
-            return retVal;
         }
-        public static void Set<T>(string aKey, T aValue)
+
+        public static void Set<T>(string key, T value)
         {
-            CheckSessionStorage();
+            if (Session == null) return;
 
-            switch (sessionStorage)
-            {
-                case SessionStorageType.HTTPSession:
-                    HttpContext.Current.Session[aKey] = aValue;
-                    break;
-                case SessionStorageType.Cookie:
-                    //CookieHelper.SetObjectToCookie(aKey, aValue);
-                    break;
-            }
+            var jsonString = JsonSerializer.Serialize(value);
+            var data = System.Text.Encoding.UTF8.GetBytes(jsonString);
+            Session.Set(key, data);
         }
-        public static void ClearKey(string aKey)
+
+        public static void ClearKey(string key)
         {
-            CheckSessionStorage();
-
-            switch (sessionStorage)
-            {
-                case SessionStorageType.HTTPSession:
-                    HttpContext.Current.Session[aKey] = null;
-                    break;
-                case SessionStorageType.Cookie:
-                    //CookieHelper.SetObjectToCookie(aKey, "");
-                    break;
-            }
+            Session?.Remove(key);
         }
-    }
-
-    public enum SessionStorageType : int
-    {
-        NotSpecified = 1,
-        HTTPSession = 2,
-        Cookie = 3
     }
 }

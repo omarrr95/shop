@@ -3,7 +3,10 @@ using eCommerce.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace eCommerce.Services;
+public interface ICategoriesService
+{
 
+}
 public class CategoriesService
 {
     #region Define as Singleton
